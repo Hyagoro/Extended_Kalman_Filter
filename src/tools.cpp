@@ -18,11 +18,12 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
     }
 
     //accumulate squared residuals
-    for(unsigned long i=0; i < estimations.size(); ++i){
+    unsigned long es_size = estimations.size();
+    for(unsigned long i=0; i < es_size; ++i){
         VectorXd toto = estimations.at(i).array() - ground_truth.at(i).array();
         rmse = rmse.array() + (toto.array() * toto.array());
     }
-    rmse = rmse.array() / 3;
+    rmse = rmse.array() / es_size;
     return rmse.array().sqrt();
 }
 
@@ -36,17 +37,17 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
     float px2py2 = px * px + py * py;
     float sqrt_px2py2 = sqrt(px2py2);
-    float pow32_px2py2 = pow(px2py2, 3/2);
+    float l = (px2py2*sqrt_px2py2);
 
     //check division by zero
-    if(px2py2 == 0){
+    if(fabs(px2py2) < 0.0001){
         cout << "Error, divide by zero" << endl;
         return Hj;
     }
     //compute the Jacobian matrix
-    Hj << px/sqrt_px2py2, py/sqrt_px2py2, 0, 0,
-            0-py/px2py2, px / px2py2, 0, 0,
-            (py*((vx*py)-(vy*px)))/pow32_px2py2, (px*((vy*px)-(vx*py)))/pow32_px2py2, px/sqrt_px2py2, py/sqrt_px2py2;
+    Hj <<   px/sqrt_px2py2,           py/sqrt_px2py2,           0,              0,
+            -py/px2py2,               px / px2py2,              0,              0,
+            (py*((vx*py)-(vy*px)))/l, (px*((vy*px)-(vx*py)))/l, px/sqrt_px2py2, py/sqrt_px2py2;
 
     return Hj;
 }
