@@ -45,25 +45,24 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
-    // Recalculate x object state to rho, theta, rho_dot coordinates
     double rho = sqrt(x_(0) * x_(0) + x_(1) * x_(1));
-    double theta = atan2(x_(1), x_(0));
-    if(theta > M_PI){
-        theta -= 2*M_PI;
-        cout << "theta > Pi" << endl;
-    }
-    else if(theta < -M_PI){
-        theta += 2*M_PI;
-        cout << "theta < Pi" << endl;
-    }
-
+    double phi = atan2(x_(1), x_(0));
     double rho_dot = (x_(0) * x_(2) + x_(1) * x_(3)) / rho;
     VectorXd h = VectorXd(3); // h(x_)
 
-    h << rho, theta, rho_dot;
+    h << rho, phi, rho_dot;
 
     // y = z - h(x)
     VectorXd y = z - h;
+
+	if(y(1) > M_PI){
+        y(1) -= 2*M_PI;
+        cout << "phi > Pi" << endl;
+    }
+    else if(y(1) < -M_PI){
+        y(1) += 2*M_PI;
+        cout << "phi < Pi" << endl;
+    }
 
     // Use Hj calculated in FusionEKF
     MatrixXd Ht = H_.transpose();
